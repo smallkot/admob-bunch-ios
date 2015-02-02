@@ -33,6 +33,20 @@ enum{
     aGADAdSizeSmartBannerLandscape
 };
 
+enum
+{
+    kBannerGravityNone = -1,
+    kBannerGravityTopLeft = 0,
+    kBannerGravityCenterLeft,
+    kBannerGravityBottomLeft,
+    kBannerGravityTopCenter,
+    kBannerGravityCenter,
+    kBannerGravityBottomCenter,
+    kBannerGravityTopRight,
+    kBannerGravityCenterRight,
+    kBannerGravityBottomRight
+};
+
 @interface AdmobBunch ()
 @end
 
@@ -65,8 +79,6 @@ enum{
     [self registerProcessorForKey:@"createBanner" withBlock:^(NSDictionary *parameters, NSMutableDictionary *retParameters) {
         NSString *adUnitID = parameters[@"adUnitID"];
         NSNumber *sizeBanner = parameters[@"adSizeBanner"];
-        NSNumber *mX = parameters[@"mX"];
-        NSNumber *mY = parameters[@"mY"];
         GADAdSize adSizeBanner = kGADAdSizeBanner;
         if ([sizeBanner intValue] == aGADAdSizeBanner) {
             adSizeBanner = kGADAdSizeBanner;
@@ -92,11 +104,20 @@ enum{
         else if ([sizeBanner intValue] == aGADAdSizeSmartBannerLandscape) {
             adSizeBanner = kGADAdSizeSmartBannerLandscape;
         }
-        [[AdmobBunch sharedInstance] createBanner:adUnitID :adSizeBanner :[mX doubleValue] :[mY doubleValue]];
+        [[AdmobBunch sharedInstance] createBanner:adUnitID :adSizeBanner];
     }];
     
     [self registerProcessorForKey:@"showBanner" withBlock:^(NSDictionary *parameters, NSMutableDictionary *retParameters) {
-        [[AdmobBunch sharedInstance] showBanner];
+        NSNumber *mX = parameters[@"mX"];
+        NSNumber *mY = parameters[@"mY"];
+        NSNumber *mWidth = parameters[@"mWidth"];
+        NSNumber *mHeight = parameters[@"mHeight"];
+        NSNumber *mGravity = parameters[@"mGravity"];
+        [[AdmobBunch sharedInstance] showBanner:[mX doubleValue] :[mY doubleValue] : [mWidth doubleValue] : [mHeight doubleValue] : [mGravity intValue]];
+    }];
+    
+    [self registerProcessorForKey:@"hideBanner" withBlock:^(NSDictionary *parameters, NSMutableDictionary *retParameters) {
+        [[AdmobBunch sharedInstance] hideBanner];
     }];
     
     [self registerProcessorForKey:@"createInterstitial" withBlock:^(NSDictionary *parameters, NSMutableDictionary *retParameters) {
@@ -109,19 +130,133 @@ enum{
     }];
 }
 
-- (void)createBanner:(NSString*) adUnitID :(GADAdSize) adSizeBanner:(double)mX :(double)mY {
+- (void)createBanner:(NSString*) adUnitID :(GADAdSize) adSizeBanner{
     
-    CGPoint origin = CGPointMake(mX, mY);
+    CGPoint origin = CGPointMake(0, 0);
     bannerView_ = [[GADBannerView alloc] initWithAdSize:adSizeBanner origin:origin];
     bannerView_.adUnitID = adUnitID;
     bannerView_.rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
-    [[[UIApplication sharedApplication] keyWindow].rootViewController.view addSubview:bannerView_];
+    [bannerView_ loadRequest:[GADRequest request]];
+    bannerView_.hidden = true;
+    //[[[UIApplication sharedApplication] keyWindow].rootViewController.view addSubview:bannerView_];
 }
 
-- (void)showBanner
+- (void)hideBanner
 {
-    [bannerView_ loadRequest:[GADRequest request]];
+    [bannerView_ removeFromSuperview];
+    bannerView_.hidden = true;
 }
+
+//============================================================================
+
+-(void) showBanner:(int) x: (int) y: (int) width: (int) height: (int) gravity
+{
+    if (!bannerView_.hidden) {
+        return;
+    }
+    NSLog(@"====== showBanner ==========");
+    bannerView_.hidden = false;
+    CGRect rect = CGRectMake(x, y, width, height);
+    
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)] == YES) {
+        float scale = [[UIScreen mainScreen] scale];
+        rect.origin.x /= scale;
+        rect.origin.y /= scale;
+        rect.size.width /= scale;
+        rect.size.height /= scale;
+        NSLog(@"====== scale ====== %f", scale);
+    }
+    
+    if(gravity==kBannerGravityNone)
+    {
+        bannerView_.layer.anchorPoint = CGPointMake(0, 0);
+        CGRect bounds = [UIApplication sharedApplication].keyWindow.rootViewController.view.bounds;
+        rect.origin.y = rect.origin.y;//bounds.size.height - rect.size.height - rect.origin.y;
+        NSLog(@"======= rect.origin.y = %f", rect.origin.y);
+        bannerView_.center = rect.origin;
+    }
+    
+    [[UIApplication sharedApplication].keyWindow.rootViewController.view addSubview:bannerView_];
+    
+    //CGRect bounds = [UIApplication sharedApplication].keyWindow.rootViewController.view.bounds;
+    
+    //float xScale = 1.0f;
+    //float yScale = 1.0f;
+    /*
+    switch (scaleType) {
+        case BannerScaleType::Fill:
+            xScale = bounds.size.width / bannerView_.bounds.size.width;
+            yScale = bounds.size.height / bannerView_.bounds.size.height;
+            break;
+            
+        case BannerScaleType::Proportional:
+            xScale = bounds.size.width / bannerView_.bounds.size.width;
+            yScale = bounds.size.height / bannerView_.bounds.size.height;
+            xScale = std::min(xScale, yScale);
+            yScale = xScale;
+            break;
+            
+        default:
+            break;
+    }
+     */
+    
+    //bannerView_.transform = CGAffineTransformScale(CGAffineTransformIdentity, xScale, yScale);
+    
+    switch (gravity) {
+        case kBannerGravityTopLeft:
+            NSLog(@"kBannerGravityTopLeft");
+            bannerView_.layer.anchorPoint = CGPointMake(0, 0);
+            bannerView_.center = CGPointMake(rect.origin.x, rect.origin.y);
+            break;
+        case kBannerGravityCenterLeft:
+            NSLog(@"kBannerGravityCenterLeft");
+            bannerView_.layer.anchorPoint = CGPointMake(0, 0.5);
+            bannerView_.center = CGPointMake(rect.origin.x, (rect.origin.y + rect.size.height)/2);
+            break;
+        case kBannerGravityBottomLeft:
+            NSLog(@"kBannerGravityBottomLeft");
+            bannerView_.layer.anchorPoint = CGPointMake(0, 1.0);
+            bannerView_.center = CGPointMake(rect.origin.x, rect.origin.y + rect.size.height);
+            break;
+        case kBannerGravityTopCenter:
+            NSLog(@"kBannerGravityTopCenter");
+            bannerView_.layer.anchorPoint = CGPointMake(0.5, 0);
+            bannerView_.center = CGPointMake((rect.origin.x + rect.size.width)/2, rect.origin.y);
+            break;
+        case kBannerGravityCenter:
+            NSLog(@"kBannerGravityCenter");
+            bannerView_.layer.anchorPoint = CGPointMake(0.5, 0.5);
+            bannerView_.center = CGPointMake((rect.origin.x + rect.size.width)/2, (rect.origin.y + rect.size.height)/2);
+            break;
+        case kBannerGravityBottomCenter:
+            NSLog(@"kBannerGravityBottomCenter");
+            bannerView_.layer.anchorPoint = CGPointMake(0.5, 1.0);
+            bannerView_.center = CGPointMake((rect.origin.x + rect.size.width)/2, rect.origin.y + rect.size.height);
+            break;
+        case kBannerGravityTopRight:
+            NSLog(@"kBannerGravityTopRight");
+            bannerView_.layer.anchorPoint = CGPointMake(1.0, 0);
+            bannerView_.center = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y );
+            break;
+        case kBannerGravityCenterRight:
+            NSLog(@"kBannerGravityCenterRight");
+            bannerView_.layer.anchorPoint = CGPointMake(1.0, 0.5);
+            bannerView_.center = CGPointMake(rect.origin.x + rect.size.width, (rect.origin.y + rect.size.height)/2);;
+            break;
+        case kBannerGravityBottomRight:
+            NSLog(@"kBannerGravityBottomRight");
+            bannerView_.layer.anchorPoint = CGPointMake(1.0, 1.0);
+            bannerView_.center = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);;
+            break;
+            
+        default:
+            break;
+    }
+    NSLog(@"== %f, %f, %f, %f", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+}
+
+//============================================================================
 
 - (void)createInterstitial:(NSString*) adUnitID {
     interstitial_ = [[GADInterstitial alloc] init];
