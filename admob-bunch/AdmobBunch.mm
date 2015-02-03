@@ -3,6 +3,7 @@
 #import "GADBannerView.h"
 #import "GADAdSize.h"
 #import "GADInterstitial.h"
+#include <vector>
 
 enum{
     aGADAdSizeBanner,
@@ -53,7 +54,7 @@ enum
 @implementation AdmobBunch {
     GADBannerView *bannerView_;
     // Объявление его переменной экземпляра.
-    GADInterstitial *interstitial_;
+    std::vector<GADInterstitial*> interstitial_;
 }
 
 + (id)sharedInstance {
@@ -259,28 +260,38 @@ enum
 //============================================================================
 
 - (void)createInterstitial:(NSString*) adUnitID {
-    interstitial_ = [[GADInterstitial alloc] init];
-    interstitial_.adUnitID = adUnitID;
-    interstitial_.delegate = self;
+    interstitial_.push_back([[GADInterstitial alloc] init]);
+    interstitial_.back().adUnitID = adUnitID;
+    interstitial_.back().delegate = self;
 }
 
 - (void)showInterstitial
 {
-    NSLog(@"showInterstitial");
-    [interstitial_ loadRequest:[GADRequest request]];
+    
+    if (interstitial_.size()>0)
+    {
+        NSLog(@"showInterstitial");
+        [interstitial_.at(0) loadRequest:[GADRequest request]];
+        //
+    }
 }
 
 - (void)interstitial:(GADInterstitial *)interstitial didFailToReceiveAdWithError:(GADRequestError *)error {
     // Alert the error.
     NSLog(@"didFailToReceiveAdWithError");
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"GADRequestError" message:[error localizedDescription] delegate:nil cancelButtonTitle:@"Drat" otherButtonTitles:nil];
-    [alert show];
+    //UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"GADRequestError" message:[error localizedDescription] delegate:nil cancelButtonTitle:@"Drat" otherButtonTitles:nil];
+    //[alert show];
     
 }
 
 - (void)interstitialDidReceiveAd:(GADInterstitial *)interstitial {
     NSLog(@"interstitialDidReceiveAd");
     [interstitial presentFromRootViewController:[[UIApplication sharedApplication] keyWindow].rootViewController];
+}
+
+- (void)interstitialWillDismissScreen:(GADInterstitial *)interstitial
+{
+    interstitial_.erase(interstitial_.begin());
 }
 
 @end
