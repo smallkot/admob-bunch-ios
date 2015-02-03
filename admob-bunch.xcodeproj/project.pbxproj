@@ -33,7 +33,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		A9B537331A34974200FAE096 /* PBXContainerItemProxy */ = {
+		A9BEA36B1A81320700A4AF6D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A9B5372E1A34974200FAE096 /* native-gateway-common.xcodeproj */;
 			proxyType = 2;
@@ -56,7 +56,7 @@
 
 /* Begin PBXFileReference section */
 		372B7DCC69F00CDB6B22A3A0 /* libAdmobBunch.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAdmobBunch.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A9B5372E1A34974200FAE096 /* native-gateway-common.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "native-gateway-common.xcodeproj"; path = "../native-gateway-common-ios/native-gateway-common.xcodeproj"; sourceTree = "<group>"; };
+		A9B5372E1A34974200FAE096 /* native-gateway-common.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "native-gateway-common.xcodeproj"; path = "../native-gateway-common/native-gateway-common.xcodeproj"; sourceTree = "<group>"; };
 		A9C177B11A3FF0CC00AD2D58 /* GADAdMobExtras.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GADAdMobExtras.h; sourceTree = "<group>"; };
 		A9C177B21A3FF0CC00AD2D58 /* GADAdNetworkExtras.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GADAdNetworkExtras.h; sourceTree = "<group>"; };
 		A9C177B31A3FF0CC00AD2D58 /* GADAdSize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GADAdSize.h; sourceTree = "<group>"; };
@@ -125,10 +125,10 @@
 			);
 			sourceTree = "<group>";
 		};
-		A9B5372F1A34974200FAE096 /* Products */ = {
+		A9BEA3671A81320700A4AF6D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A9B537341A34974200FAE096 /* libNativeGatewayCommon.a */,
+				A9BEA36C1A81320700A4AF6D /* libNativeGatewayCommon.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -207,7 +207,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = A9B5372F1A34974200FAE096 /* Products */;
+					ProductGroup = A9BEA3671A81320700A4AF6D /* Products */;
 					ProjectRef = A9B5372E1A34974200FAE096 /* native-gateway-common.xcodeproj */;
 				},
 			);
@@ -220,11 +220,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		A9B537341A34974200FAE096 /* libNativeGatewayCommon.a */ = {
+		A9BEA36C1A81320700A4AF6D /* libNativeGatewayCommon.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libNativeGatewayCommon.a;
-			remoteRef = A9B537331A34974200FAE096 /* PBXContainerItemProxy */;
+			remoteRef = A9BEA36B1A81320700A4AF6D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -263,7 +263,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					"$(SRCROOT)/../native-gateway-common-ios/native-gateway-common/**",
+					"$(SRCROOT)/../native-gateway-common/native-gateway-common/**",
 					"$(SRCROOT)/AdMob",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -317,7 +317,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					"$(SRCROOT)/../native-gateway-common-ios/native-gateway-common/**",
+					"$(SRCROOT)/../native-gateway-common/native-gateway-common/**",
 					"$(SRCROOT)/AdMob",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
