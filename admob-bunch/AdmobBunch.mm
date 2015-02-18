@@ -53,8 +53,9 @@ enum
 
 @implementation AdmobBunch {
     GADBannerView *bannerView_;
-    // Объявление его переменной экземпляра.
-    std::vector<GADInterstitial*> interstitial_;
+    GADInterstitial* interstitial_;
+    NSString * mAdUnitIDBanner;
+    NSString * mAdUnitIDInterstitial;
 }
 
 + (id)sharedInstance {
@@ -105,6 +106,7 @@ enum
         else if ([sizeBanner intValue] == aGADAdSizeSmartBannerLandscape) {
             adSizeBanner = kGADAdSizeSmartBannerLandscape;
         }
+        [[AdmobBunch sharedInstance] AdUnitIDBanner:adUnitID];
         [[AdmobBunch sharedInstance] createBanner:adUnitID :adSizeBanner];
     }];
     
@@ -123,12 +125,23 @@ enum
     
     [self registerProcessorForKey:@"createInterstitial" withBlock:^(NSDictionary *parameters, NSMutableDictionary *retParameters) {
         NSString *adUnitID = parameters[@"adUnitID"];
+        [[AdmobBunch sharedInstance] AdUnitIDInterstitial:adUnitID];
         [[AdmobBunch sharedInstance] createInterstitial:adUnitID];
     }];
     
     [self registerProcessorForKey:@"showInterstitial" withBlock:^(NSDictionary *parameters, NSMutableDictionary *retParameters) {
         [[AdmobBunch sharedInstance] showInterstitial];
     }];
+}
+
+-(void) AdUnitIDBanner:(NSString*)adID
+{
+    mAdUnitIDBanner = adID;
+}
+
+-(void) AdUnitIDInterstitial:(NSString*)adID
+{
+    mAdUnitIDInterstitial = adID;
 }
 
 - (void)createBanner:(NSString*) adUnitID :(GADAdSize) adSizeBanner{
@@ -139,7 +152,6 @@ enum
     bannerView_.rootViewController = [[UIApplication sharedApplication] keyWindow].rootViewController;
     [bannerView_ loadRequest:[GADRequest request]];
     bannerView_.hidden = true;
-    //[[[UIApplication sharedApplication] keyWindow].rootViewController.view addSubview:bannerView_];
 }
 
 - (void)hideBanner
@@ -148,16 +160,22 @@ enum
     bannerView_.hidden = true;
 }
 
-//============================================================================
-
 -(void) showBanner:(int) x: (int) y: (int) width: (int) height: (int) gravity
 {
     if (!bannerView_.hidden) {
         return;
     }
-    NSLog(@"====== showBanner ==========");
+
     bannerView_.hidden = false;
-    CGRect rect = CGRectMake(x, y, width, height);
+    CGRect rect;
+    if(gravity==kBannerGravityNone)
+    {
+        rect = CGRectMake(x, y, width, height);
+    }
+    else
+    {
+        rect = CGRectMake(0, 0, width, height);
+    }
     
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)] == YES) {
         float scale = [[UIScreen mainScreen] scale];
@@ -165,44 +183,18 @@ enum
         rect.origin.y /= scale;
         rect.size.width /= scale;
         rect.size.height /= scale;
-        NSLog(@"====== scale ====== %f", scale);
     }
     
     if(gravity==kBannerGravityNone)
     {
         bannerView_.layer.anchorPoint = CGPointMake(0, 0);
-        CGRect bounds = [UIApplication sharedApplication].keyWindow.rootViewController.view.bounds;
-        rect.origin.y = rect.origin.y;//bounds.size.height - rect.size.height - rect.origin.y;
-        NSLog(@"======= rect.origin.y = %f", rect.origin.y);
+        //CGRect bounds = [UIApplication sharedApplication].keyWindow.rootViewController.view.bounds;
+        rect.origin.x = x;
+        rect.origin.y = y;//bounds.size.height - rect.size.height - rect.origin.y;
         bannerView_.center = rect.origin;
     }
     
     [[UIApplication sharedApplication].keyWindow.rootViewController.view addSubview:bannerView_];
-    
-    //CGRect bounds = [UIApplication sharedApplication].keyWindow.rootViewController.view.bounds;
-    
-    //float xScale = 1.0f;
-    //float yScale = 1.0f;
-    /*
-    switch (scaleType) {
-        case BannerScaleType::Fill:
-            xScale = bounds.size.width / bannerView_.bounds.size.width;
-            yScale = bounds.size.height / bannerView_.bounds.size.height;
-            break;
-            
-        case BannerScaleType::Proportional:
-            xScale = bounds.size.width / bannerView_.bounds.size.width;
-            yScale = bounds.size.height / bannerView_.bounds.size.height;
-            xScale = std::min(xScale, yScale);
-            yScale = xScale;
-            break;
-            
-        default:
-            break;
-    }
-     */
-    
-    //bannerView_.transform = CGAffineTransformScale(CGAffineTransformIdentity, xScale, yScale);
     
     switch (gravity) {
         case kBannerGravityTopLeft:
@@ -254,25 +246,34 @@ enum
         default:
             break;
     }
-    NSLog(@"== %f, %f, %f, %f", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
 }
 
 //============================================================================
 
 - (void)createInterstitial:(NSString*) adUnitID {
-    interstitial_.push_back([[GADInterstitial alloc] init]);
-    interstitial_.back().adUnitID = adUnitID;
-    interstitial_.back().delegate = self;
+    interstitial_ = [[GADInterstitial alloc] init];
+    interstitial_.adUnitID = adUnitID;
+    interstitial_.delegate = self;
+    [self loadInterstitial];
+}
+
+- (void) loadInterstitial
+{
+    NSLog(@"loadInterstitial before");
+    if (interstitial_ != nil)
+    {
+        NSLog(@"loadInterstitial after");
+        [interstitial_ loadRequest:[GADRequest request]];
+    }
 }
 
 - (void)showInterstitial
 {
-    
-    if (interstitial_.size()>0)
+    NSLog(@"showInterstitial before");
+    if (interstitial_!=nil && interstitial_.isReady)
     {
-        NSLog(@"showInterstitial");
-        [interstitial_.at(0) loadRequest:[GADRequest request]];
-        //
+        NSLog(@"showInterstitial after");
+        [interstitial_ presentFromRootViewController:[[UIApplication sharedApplication] keyWindow].rootViewController];
     }
 }
 
@@ -286,12 +287,17 @@ enum
 
 - (void)interstitialDidReceiveAd:(GADInterstitial *)interstitial {
     NSLog(@"interstitialDidReceiveAd");
-    [interstitial presentFromRootViewController:[[UIApplication sharedApplication] keyWindow].rootViewController];
 }
 
 - (void)interstitialWillDismissScreen:(GADInterstitial *)interstitial
 {
-    interstitial_.erase(interstitial_.begin());
+    NSLog(@"interstitialWillDismissScreen");
+}
+
+- (void)interstitialDidDismissScreen:(GADInterstitial *)ad
+{
+    NSLog(@"interstitialDidDismissScreen");
+    [self createInterstitial:self->mAdUnitIDInterstitial];
 }
 
 @end
